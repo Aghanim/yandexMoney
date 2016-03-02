@@ -1,54 +1,30 @@
-Yii 2 Advanced Project Template
-===============================
+Простой Yii2 приложение для демонстрации работы с Yandex Money API
+==================================================================
 
-Yii 2 Advanced Project Template is a skeleton [Yii 2](http://www.yiiframework.com/) application best for
-developing complex Web applications with multiple tiers.
+Чтобы ваше приложение могло работать со счетом пользователя в Яндекс.Деньгах, необходимо пройти авторизацию. Протокол OAuth2.
 
-The template includes three tiers: front end, back end, and console, each of which
-is a separate Yii application.
+Действия разработчика
 
-The template is designed to work in a team development environment. It supports
-deploying the application in different environments.
+Разработчик [регистрирует](https://money.yandex.ru/myservices/new.xml) свое приложение в Яндекс.Деньгах.
+Согласно протоколу OAuth2, это фаза Registration Request. Яндекс.Деньги выдают разработчику client_id - идентификатор
+приложения, тип string.
+Разработчик встраивает в код приложения полученный client_id, объявляя его константой.
+В течение жизненного цикла приложения client_id не изменяется.
+Также требуется указать - использовать OAuth2  - будет выдан client_secret
 
-Documentation is at [docs/guide/README.md](docs/guide/README.md).
+client_id и client_secret - необходимые параметры для компонента YM, пример конфигурации компонента:
 
-[![Latest Stable Version](https://poser.pugx.org/yiisoft/yii2-app-advanced/v/stable.png)](https://packagist.org/packages/yiisoft/yii2-app-advanced)
-[![Total Downloads](https://poser.pugx.org/yiisoft/yii2-app-advanced/downloads.png)](https://packagist.org/packages/yiisoft/yii2-app-advanced)
-[![Build Status](https://travis-ci.org/yiisoft/yii2-app-advanced.svg?branch=master)](https://travis-ci.org/yiisoft/yii2-app-advanced)
+    'ym' => [
+        'class' => 'common\components\YM',
+        'client_id' => '6E0F0A9EB195B5**************************',
+        'redirect_uri' => 'http://yandex.local/',
+        'scope' => ["account-info", "operation-history", "operation-details", "payment-p2p"],
+        'client_secret' => '1A6C20ECF4969C****************************************************************'
+    ],
 
-DIRECTORY STRUCTURE
--------------------
+	scope - массив запрашиваемых прав
 
-```
-common
-    config/              contains shared configurations
-    mail/                contains view files for e-mails
-    models/              contains model classes used in both backend and frontend
-console
-    config/              contains console configurations
-    controllers/         contains console controllers (commands)
-    migrations/          contains database migrations
-    models/              contains console-specific model classes
-    runtime/             contains files generated during runtime
-backend
-    assets/              contains application assets such as JavaScript and CSS
-    config/              contains backend configurations
-    controllers/         contains Web controller classes
-    models/              contains backend-specific model classes
-    runtime/             contains files generated during runtime
-    views/               contains view files for the Web application
-    web/                 contains the entry script and Web resources
-frontend
-    assets/              contains application assets such as JavaScript and CSS
-    config/              contains frontend configurations
-    controllers/         contains Web controller classes
-    models/              contains frontend-specific model classes
-    runtime/             contains files generated during runtime
-    views/               contains view files for the Web application
-    web/                 contains the entry script and Web resources
-    widgets/             contains frontend widgets
-vendor/                  contains dependent 3rd-party packages
-environments/            contains environment-based overrides
-tests                    contains various tests for the advanced application
-    codeception/         contains tests developed with Codeception PHP Testing Framework
-```
+Компонет YM - надстройка над [Yandex Money SDK для PHP](https://github.com/yandex-money/yandex-money-sdk-php/),
+назначение  - предоставить удобный интерфейс, адаптированный к Yii2 для работы с Yandex Money API
+YM - сохраняет токен авторизации в сессию в шифрованном виде, разработчик должен самостоятельно позабтиться о времени жизни сесси
+[Документация Yandex Money Api](https://tech.yandex.ru/money/doc/dg/concepts/money-oauth-intro-docpage/)
