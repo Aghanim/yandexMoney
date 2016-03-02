@@ -14,6 +14,7 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use YandexMoney\API;
+use yii\base\DynamicModel;
 
 /**
  * Site controller
@@ -90,6 +91,82 @@ class SiteController extends Controller
     }
 
     /**
+     * Displays about page.
+     *
+     * @return mixed
+     */
+    public function actionPay()
+    {
+        $request_payment = null;
+        $process_payment = null;
+
+        $model = new DynamicModel(['amount_due' => 1]);
+        $model->addRule('amount_due', 'number');
+
+        try {
+            if(Yii::$app->ym->isAuthorized()) {
+                $api = Yii::$app->ym->getApi();
+
+                if($model->load(Yii::$app->request->post()) && $model->validate()) {
+
+                    $request_payment = $api->requestPayment(array(
+                        "pattern_id" => "p2p",
+                        "to" => Yii::$app->params['wallet'],
+                        "amount_due" => $model->amount_due,
+                        "comment" => "Test YM payment to Nariman :)",
+                        "message" => "Test YM payment to Nariman :)",
+                    ));
+
+                    if($request_payment->status == 'success') {
+                        $process_payment = $api->processPayment(array(
+                            "request_id" => $request_payment->request_id,
+                        ));
+                    } else {
+                        throw new \Exception("Something gone wrong");
+                    }
+                }
+            }
+        } catch(\Exception $e) {
+            Yii::$app->getSession()->setFlash('error', $e->getMessage());
+        }
+
+        return $this->render('pay', [
+            'model' => $model,
+            'request_payment' => $request_payment,
+            'process_payment' => $process_payment,
+            'isAuth' => Yii::$app->ym->isAuthorized(),
+        ]);
+    }
+
+    /**
+     * Displays about page.
+     *
+     * @return mixed
+     */
+    public function actionAbout()
+    {
+        $history = null;
+        $accInfo = null;
+
+        try {
+            if(Yii::$app->ym->isAuthorized()) {
+                $api = Yii::$app->ym->getApi();
+
+                $accInfo = $api->accountInfo();
+                $history = $api->operationHistory(array("records" => 20));
+            }
+        } catch(\Exception $e) {
+            Yii::$app->getSession()->setFlash('error', $e->getMessage());
+        }
+
+        return $this->render('about', [
+            'history'=>$history,
+            'accInfo' =>$accInfo,
+            'isAuth' => Yii::$app->ym->isAuthorized(),
+        ]);
+    }
+
+    /**
      * Logs in a user.
      *
      * @return mixed
@@ -143,44 +220,6 @@ class SiteController extends Controller
                 'model' => $model,
             ]);
         }
-    }
-
-    /**
-     * Displays about page.
-     *
-     * @return mixed
-     */
-    public function actionAbout()
-    {
-        $history = null;
-        $accInfo = null;
-        $request_payment = null;
-        $process_payment = null;
-
-        try {
-            if(Yii::$app->ym->isAuthorized()) {
-                $api = Yii::$app->ym->getApi();
-
-                $request_payment = $api->requestPayment(array(
-                    "pattern_id" => "p2p",
-                    "to" => "410013983933293",
-                    "amount_due" => 1,
-                    "comment" => "Test Narimans YM API connector",
-                    "message" => "Test Narimans YM API connector",
-                ));
-
-                $process_payment = $api->processPayment(array(
-                    "request_id" => $request_payment->request_id,
-                ));
-
-                $history = $api->operationHistory(array("records" => 3));
-                $accInfo = $api->accountInfo();
-            }
-        } catch(\Exception $e) {
-            Yii::$app->getSession()->setFlash('error', $e->getMessage());
-        }
-
-        return $this->render('about', ['history'=>$history, 'accInfo' =>$accInfo, 'request_payment' => $request_payment, 'process_payment' => $process_payment]);
     }
 
     /**

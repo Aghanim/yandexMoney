@@ -4,8 +4,6 @@ namespace common\components;
 use Yii;
 use yii\base\Component;
 use YandexMoney\API;
-use yii\base\ErrorException;
-use yii\base\Exception;
 use yii\base\InvalidConfigException;
 
 class YM extends Component {
@@ -30,7 +28,7 @@ class YM extends Component {
             throw new InvalidConfigException("Client_id can't be empty!");
         }
 
-        if ($this->scope) {
+        if (!$this->scope) {
             throw new InvalidConfigException("Scope can't be empty!");
         }
 
