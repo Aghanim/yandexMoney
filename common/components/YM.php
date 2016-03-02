@@ -25,15 +25,19 @@ class YM extends Component {
     public function init()
     {
         if (!$this->client_id) {
-            throw new InvalidConfigException("Client_id can't be empty!");
+            throw new InvalidConfigException("client_id can't be empty!");
         }
 
         if (!$this->scope) {
-            throw new InvalidConfigException("Scope can't be empty!");
+            throw new InvalidConfigException("scope can't be empty!");
         }
 
         if (!$this->redirect_uri) {
-            throw new InvalidConfigException("Redirect_uri can't be empty!");
+            throw new InvalidConfigException("redirect_uri can't be empty!");
+        }
+
+        if (!$this->client_secret) {
+            throw new InvalidConfigException("client_secret can't be empty!");
         }
     }
 
